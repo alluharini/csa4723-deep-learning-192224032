@@ -1,22 +1,22 @@
 import numpy as np
-import cv2
-from matplotlib import pyplot as plt
-img = cv2.imread(r'C:/Users/Dell/Downloads/dow.jpeg')
-b, g, r = cv2.split(img)
-rgb_img = cv2.merge([r, g, b])
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-kernel = np.ones((2, 2), np.uint8)
-closing = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel, iterations=2)
-sure_bg = cv2.dilate(closing, kernel, iterations=3)
-plt.subplot(211)
-plt.imshow(closing, 'gray')
-plt.title("MorphologyEx: Closing: 2x2")
-plt.xticks([]), plt.yticks([])
-plt.subplot(212)
-plt.imshow(sure_bg, 'gray')
-plt.title("Dilation")
-plt.xticks([]), plt.yticks([])
-plt.imsave(r'C:/Users/Dell/Downloads/dilation.png', sure_bg, cmap='gray')
-plt.tight_layout()
+import matplotlib.pyplot as plt
+from skimage import data, color
+from skimage.filters import sobel
+from skimage.segmentation import watershed
+from skimage.measure import label
+image = color.rgb2gray(data.astronaut())
+elevation_map = sobel(image)
+markers = np.zeros_like(image, dtype=np.int32)
+markers[image < 0.3] = 1
+markers[image > 0.7] = 2
+segmentation = watershed(elevation_map, markers, mask=image)
+labels = label(segmentation)
+
+fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+axs[0].imshow(image, cmap='gray')
+axs[0].set_title('Original Image')
+axs[0].axis('off')
+axs[1].imshow(color.label2rgb(labels, image=image))
+axs[1].set_title('Segmented Image')
+axs[1].axis('off')
 plt.show()
